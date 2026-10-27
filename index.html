@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANY HUES ONE BLU - Annual Day 2026 Run of Show Tracker</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        radisson: {
+                            dark: '#030712',
+                            card: '#0b1329',
+                            border: '#1e293b',
+                            accent: '#3b82f6',
+                            gold: '#f59e0b',
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            rose: '#f43f5e'
+                        }
+                    },
+                    backgroundImage: {
+                        'rainbow-gradient': 'linear-gradient(90deg, #ec4899 0%, #8b5cf6 20%, #3b82f6 40%, #10b981 60%, #f59e0b 80%, #ef4444 100%)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Firebase v10 Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030712;
+            color: #f3f4f6;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .pulse-live-red {
+            animation: pulse-ring-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6); }
+            50% { box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+        }
+
+        .pulse-next-amber {
+            animation: pulse-ring-amber 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring-amber {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
+            50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+        }
+
+        .alert-banner-flash {
+            animation: flash-border 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes flash-border {
+            0% { border-color: rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.1); }
+            100% { border-color: rgba(245, 158, 11, 1); background-color: rgba(245, 158, 11, 0.25); }
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+    </style>
+</head>
+<body class="min-h-screen pb-20 antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Top Rainbow Brand Line -->
+    <div class="h-1.5 w-full bg-rainbow-gradient sticky top-0 z-50 shadow-md"></div>
+
+    <!-- Backstage Real-time Alert Banner Popup -->
+    <div id="global-alert-banner" class="hidden sticky top-1.5 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
+        <div class="alert-banner-flash border-2 border-amber-500 bg-amber-950/90 text-amber-100 rounded-2xl p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-md">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 text-2xl shrink-0 animate-bounce">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-500 text-slate-950">BACKSTAGE ALERT</span>
+                        <span id="alert-time-stamp" class="text-xs text-amber-300/80 font-mono">Just Now</span>
+                    </div>
+                    <h3 id="alert-title-text" class="text-base sm:text-lg font-black text-white mt-0.5">GET READY: Invocation (Yati & Team)</h3>
+                    <p id="alert-msg-text" class="text-xs text-amber-200/90">Performers and presenters please assemble backstage immediately.</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                <button id="btn-dismiss-alert" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition">
+                    ACKNOWLEDGE / DISMISS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center py-4 gap-4 border-b border-slate-800/80">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 via-indigo-600 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/20">
+                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                        <i class="fa-solid fa-dove text-transparent bg-clip-text bg-rainbow-gradient text-2xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white">MANY HUES ONE BLU</h1>
+                        <span class="px-2.5 py-0.5 text-[11px] font-extrabold rounded-full bg-blue-500/10 text-cyan-400 border border-cyan-500/30">Annual Day 2026</span>
+                    </div>
+                    <p class="text-xs text-slate-400 flex flex-wrap items-center gap-2 mt-0.5">
+                        <span><i class="fa-regular fa-clock text-blue-400 mr-1"></i>Run of Show Tracker</span>
+                        <span>•</span>
+                        <span id="sync-status-badge" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+                            <i class="fa-solid fa-circle-notch fa-spin mr-1.5"></i> Connecting Firebase...
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Live Clock, Audio Chime Toggle & Action Buttons -->
+            <div class="flex items-center space-x-2.5 w-full md:w-auto justify-between md:justify-end flex-wrap gap-y-2">
+                
+                <!-- Audio Chime Toggle -->
+                <button id="btn-toggle-sound" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-800 text-xs font-semibold flex items-center gap-2 transition" title="Toggle Audio Chime Alerts">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-cyan-400"></i>
+                    <span id="sound-text" class="hidden sm:inline">Chime ON</span>
+                </button>
+
+                <!-- IST Clock -->
+                <div class="bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl text-center shadow-inner">
+                    <div id="live-clock" class="font-mono text-base font-bold text-cyan-300">00:00:00 AM</div>
+                    <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">IST Stage Time</div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button id="btn-reseed-default" class="px-3 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl transition border border-slate-800 flex items-center gap-1.5" title="Restore default 27 schedule items">
+                        <i class="fa-solid fa-rotate text-cyan-400"></i>
+                        <span class="hidden sm:inline">Restore Defaults</span>
+                    </button>
+                    <button id="btn-add-item" class="px-3.5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Segment</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- DUAL LIVE STAGE BANNERS: NOW LIVE & UP NEXT / ON DECK -->
+        <section class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            
+            <!-- 1. NOW LIVE CARD -->
+            <div id="card-now-live" class="bg-gradient-to-br from-rose-950/30 via-slate-900 to-slate-950 border border-rose-900/50 rounded-2xl p-5 relative overflow-hidden shadow-2xl flex flex-col justify-between">
+                <div class="absolute -right-12 -bottom-12 w-40 h-40 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 pulse-live-red">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                            <span>NOW LIVE ON STAGE</span>
+                        </span>
+                        <span id="live-time-display" class="text-xs font-mono text-cyan-300 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 font-bold">--:--</span>
+                    </div>
+
+                    <div class="mt-2">
+                        <h2 id="live-title-display" class="text-lg sm:text-xl font-black text-white tracking-tight">No Segment Currently Live</h2>
+                        <p id="live-details-display" class="text-slate-300 text-xs sm:text-sm mt-1 leading-relaxed">Select "Make Live 🔴" on any item below or promote the "Up Next" segment onto stage.</p>
+                    </div>
+
+                    <div id="live-notes-box" class="mt-3 p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 text-xs text-amber-300/90 flex items-start space-x-2 hidden">
+                        <i class="fa-solid fa-clipboard-list text-amber-400 mt-0.5"></i>
+                        <span id="live-notes-text">--</span>
+                    </div>
+                </div>
+
+                <div class="mt-5 flex items-center justify-between gap-2 pt-3 border-t border-slate-800/80">
+                    <button id="btn-complete-live" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check"></i> Mark Stage Complete
+                    </button>
+                    <button id="btn-alert-from-live" class="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs rounded-xl transition border border-amber-500/40 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bullhorn text-amber-400"></i> Alert Team Backstage
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. UP NEXT / ON DECK CARD -->
+            <div id="card-up-next" class="bg-gradient-to-br from-amber-950/20 via-slate-900 to-slate-950 border border-amber-900/40 rounded-2xl p-5 relative overflow-hidden shadow-2xl flex flex-col justify-between">
+                <div class="absolute -right-12 -bottom-12 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 pulse-next-amber">
+                            <i class="fa-solid fa-bell text-amber-400"></i>
+                            <span>UP NEXT / ON DECK</span>
+                        </span>
+                        <span id="next-time-display" class="text-xs font-mono text-slate-300 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 font-bold">--:--</span>
+                    </div>
+
+                    <div class="mt-2">
+                        <h2 id="next-title-display" class="text-lg sm:text-xl font-black text-slate-100 tracking-tight">No Segment On Deck</h2>
+                        <p id="next-details-display" class="text-slate-300 text-xs sm:text-sm mt-1 leading-relaxed">Select "Up Next 🔔" on any schedule segment to queue it for backstage preparation.</p>
+                    </div>
+
+                    <div id="next-notes-box" class="mt-3 p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 text-xs text-amber-300/90 flex items-start space-x-2 hidden">
+                        <i class="fa-solid fa-clipboard-list text-amber-400 mt-0.5"></i>
+                        <span id="next-notes-text">--</span>
+                    </div>
+                </div>
+
+                <div class="mt-5 flex items-center justify-between gap-2 pt-3 border-t border-slate-800/80">
+                    <button id="btn-trigger-next-alert" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-bullhorn"></i> ALERT TEAM BACKSTAGE
+                    </button>
+                    <button id="btn-promote-next-to-live" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-play"></i> GO LIVE NOW
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Progress Overview Bar & Metrics -->
+        <section class="mt-6 bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs sm:text-sm font-black text-slate-200">Event Execution Progress</span>
+                    <span id="progress-percent-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-500/20 text-cyan-400 border border-cyan-500/30">0% Completed</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-slate-400">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Completed: <strong id="count-completed" class="text-slate-100">0</strong></span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Live: <strong id="count-live" class="text-slate-100">0</strong></span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Up Next: <strong id="count-next" class="text-slate-100">0</strong></span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span> Pending: <strong id="count-pending" class="text-slate-100">0</strong></span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Total: <strong id="count-total" class="text-slate-100">27</strong></span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-950 rounded-full h-3 p-0.5 border border-slate-800 overflow-hidden">
+                <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+            </div>
+        </section>
+
+        <!-- Navigation Filter Tabs & Stage Controls Toolbar -->
+        <section class="mt-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            
+            <!-- DEDICATED FILTER TABS -->
+            <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 overflow-x-auto">
+                <button class="filter-tab active px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition text-white bg-blue-600 shadow" data-filter="all">
+                    All Items (<span id="tab-count-all">27</span>)
+                </button>
+                <button class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition" data-filter="in_progress">
+                    Live 🔴 (<span id="tab-count-live">0</span>)
+                </button>
+                <button class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition" data-filter="next">
+                    Up Next 🔔 (<span id="tab-count-next">0</span>)
+                </button>
+                <button class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition" data-filter="pending">
+                    Pending ⏳ (<span id="tab-count-pending">0</span>)
+                </button>
+                <button class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition" data-filter="completed">
+                    Completed ✅ (<span id="tab-count-completed">0</span>)
+                </button>
+            </div>
+
+            <!-- Stage Delays & Search Toolbar -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Shift Pending Times -->
+                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 space-x-1">
+                    <span class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 px-2">Shift Schedule:</span>
+                    <button id="btn-shift-plus-5" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold rounded-lg border border-slate-700 transition" title="Shift remaining times forward by +5 mins">
+                        +5m
+                    </button>
+                    <button id="btn-shift-plus-10" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold rounded-lg border border-slate-700 transition" title="Shift remaining times forward by +10 mins">
+                        +10m
+                    </button>
+                    <button id="btn-shift-minus-5" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700 transition" title="Shift remaining times backward by -5 mins">
+                        -5m
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative flex-1 sm:w-52">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input id="search-input" type="text" placeholder="Search presenter, dance..." class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+                </div>
+
+                <!-- Reset Statuses -->
+                <button id="btn-reset-statuses" title="Reset all statuses to Pending" class="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-xl border border-slate-800 transition">
+                    <i class="fa-solid fa-rotate-right text-xs"></i>
+                </button>
+                <!-- Export JSON -->
+                <button id="btn-export-show" title="Export schedule JSON" class="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 rounded-xl border border-slate-800 transition">
+                    <i class="fa-solid fa-file-export text-xs"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Schedule Items List -->
+        <main class="mt-6">
+            <div id="schedule-container" class="space-y-3">
+                <!-- Dynamically rendered schedule cards -->
+            </div>
+
+            <!-- Empty Filter State -->
+            <div id="empty-state" class="hidden text-center py-12 bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl">
+                <i class="fa-solid fa-calendar-xmark text-4xl text-slate-600 mb-3"></i>
+                <h3 class="text-base font-bold text-slate-300">No matching schedule segments found</h3>
+                <p class="text-xs text-slate-500 mt-1">Try switching filter tabs or clearing your search query.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Add / Edit Schedule Item Modal -->
+    <div id="modal-item" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
+                <h3 id="modal-item-title" class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-400"></i> Edit Schedule Segment
+                </h3>
+                <button id="btn-close-item-modal" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            
+            <form id="form-item" class="p-6 space-y-4">
+                <input type="hidden" id="item-doc-id">
+                <input type="hidden" id="item-order">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Time Slot Range *</label>
+                    <input type="text" id="item-time" required placeholder="e.g. 04:00 PM - 04:05 PM" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Segment Title *</label>
+                    <input type="text" id="item-title-input" required placeholder="e.g. GM's Speech" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Category</label>
+                        <select id="item-category" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="Ceremony">Ceremony</option>
+                            <option value="Performance">Performance</option>
+                            <option value="Awards">Awards</option>
+                            <option value="Speech">Speech</option>
+                            <option value="Carnival">Carnival</option>
+                            <option value="Social">Social</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Status</label>
+                        <select id="item-status" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="pending">Pending ⏳</option>
+                            <option value="next">Up Next 🔔</option>
+                            <option value="in_progress">Live 🔴</option>
+                            <option value="completed">Completed ✅</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Details & Presenters</label>
+                    <textarea id="item-details" rows="2" placeholder="Names of presenters, award recipients, department..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Backstage / Audio Cue Notes</label>
+                    <input type="text" id="item-notes" placeholder="Microphone checks, background tracks, lighting cues..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div class="pt-3 border-t border-slate-800 flex justify-end space-x-2">
+                    <button type="button" id="btn-cancel-item" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 transition">Save Segment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Action Modal -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center mx-auto mb-3 text-lg">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirm-modal-title" class="text-base font-bold text-white">Confirm Action</h3>
+            <p id="confirm-modal-msg" class="text-xs text-slate-400 mt-2">Are you sure you want to proceed?</p>
+            
+            <div class="mt-5 flex items-center justify-center space-x-3">
+                <button id="btn-confirm-cancel" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Cancel</button>
+                <button id="btn-confirm-proceed" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/30 transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Application Script -->
+    <script>
+        // Exact User Firebase Credentials
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBXFcCbJQh25zZJhUVVPkE5hcHIW2nmUI",
+            authDomain: "annual-day-2026-4c7cb.firebaseapp.com",
+            projectId: "annual-day-2026-4c7cb",
+            storageBucket: "annual-day-2026-4c7cb.firebasestorage.app",
+            messagingSenderId: "751736731563",
+            appId: "1:751736731563:web:0b6646a829efd5546dc4ee"
+        };
+
+        // All 27 Schedule Items
+        const INITIAL_SCHEDULE = [
+            { order: 1, time: "02:00 PM - 03:30 PM", title: "Carnival Games", details: "Carnival Games stalls for employees and family members", category: "Carnival", status: "pending", notes: "Ensure all game counters are staffed" },
+            { order: 2, time: "03:30 PM", title: "Door opens", details: "Main doors open for guests & attendees", category: "Ceremony", status: "pending", notes: "Welcome team stationed at entry" },
+            { order: 3, time: "03:30 PM - 03:45 PM", title: "Carnival welcome Dance", details: "Opening welcome dance performance", category: "Performance", status: "pending", notes: "Welcome dance track ready" },
+            { order: 4, time: "03:50 PM - 03:55 PM", title: "Invocation (Yati & Team)", details: "Invocation by Yati & Team", category: "Performance", status: "pending", notes: "4 wireless handheld mics ready" },
+            { order: 5, time: "04:00 PM - 04:05 PM", title: "Welcome address by Director of Human Resources", details: "Welcome address by Director of HR", category: "Speech", status: "pending", notes: "Podium mic check" },
+            { order: 6, time: "04:10 PM - 04:15 PM", title: "Lighting of Lamp by GM/Chief Guest and representatives", details: "Lighting of Lamp by GM/Chief Guest and one employee from each Department & Family member", category: "Ceremony", status: "pending", notes: "Oil lamp & floral tray ready" },
+            { order: 7, time: "04:20 PM - 04:25 PM", title: "Recognition – Women @Work & Sports awards", details: "Recognition – Women @Work & Sports awards", category: "Awards", status: "pending", notes: "Trophies organized on side stage" },
+            { order: 8, time: "04:30 PM - 04:35 PM", title: "GM’s speech", details: "Annual Day speech by General Manager", category: "Speech", status: "pending", notes: "GM spotlight cue" },
+            { order: 9, time: "04:40 PM - 04:45 PM", title: "Vijay, Sandeep ………: Hero & Arjuna Awards", details: "Vijay, Sandeep: Harishchandra Award / Customer Hero/ Employee Hero / Radisson Arjuna Award", category: "Awards", status: "pending", notes: "Presenters: Vijay, Sandeep" },
+            { order: 10, time: "05:10 PM - 05:20 PM", title: "Parade of Cultures", details: "Cultural costume parade and department showcase", category: "Performance", status: "pending", notes: "Parade soundtrack cue" },
+            { order: 11, time: "05:25 PM - 05:35 PM", title: "Ganesh, Muthu …. Sports awards -Dept F&B S Service", details: "Ganesh, Muthu: Sports awards -Dept F&B S Service / Spirit of Participation award / Dronacharya Award", category: "Awards", status: "pending", notes: "Presenters: Ganesh, Muthu" },
+            { order: 12, time: "05:40 PM - 05:45 PM", title: "Song by Abhinu", details: "Solo song performance by Abhinu", category: "Performance", status: "pending", notes: "Vocal mic check" },
+            { order: 13, time: "05:50 PM - 05:55 PM", title: "Saranya, Sudheer, Sunil (Awards –Smile of the year)", details: "Saranya, Sudheer, Sunil (Awards –Smile of the year / Sports Awards ...dept Admin)", category: "Awards", status: "pending", notes: "Presenters: Saranya, Sudheer, Sunil" },
+            { order: 14, time: "06:00 PM - 06:10 PM", title: "Song by Pradeep", details: "Solo vocal performance by Pradeep", category: "Performance", status: "pending", notes: "Vocal audio check" },
+            { order: 15, time: "06:15 PM - 06:20 PM", title: "Dance by hotel team (Trio)", details: "Trio dance performance by hotel team", category: "Performance", status: "pending", notes: "Upbeat dance audio track" },
+            { order: 16, time: "06:25 PM - 06:30 PM", title: "Nishanth, Nagesh, Raveendra (Technical Services Awards)", details: "Nishanth, Nagesh, Raveendra (Sports Awards - dept Technical Services, Blue to the dot award)", category: "Awards", status: "pending", notes: "Presenters: Nishanth, Nagesh, Raveendra" },
+            { order: 17, time: "06:35 PM - 06:40 PM", title: "Song by Vinutha & Stalin", details: "Duet song performance by Vinutha & Stalin", category: "Performance", status: "pending", notes: "2 cordless mics ready" },
+            { order: 18, time: "06:45 PM - 06:50 PM", title: "Award– Brightest Blu star employee & Rising Star", details: "Award– Brightest Blu star employee (FOH), Brightest Blu star employee (HOH), Brightest Blu star Team Leader / Rising Blu Star by GM & Chief Guest", category: "Awards", status: "pending", notes: "GM & Chief Guest stage presence" },
+            { order: 19, time: "06:55 PM - 07:00 PM", title: "Group Dance (Hotel Team)", details: "Group dance performance by Hotel Team", category: "Performance", status: "pending", notes: "Group entry cue" },
+            { order: 20, time: "07:05 PM - 07:10 PM", title: "Harikrishna, Amit, Bharath (Culinary Art Awards)", details: "Harikrishna, Amit, Bharath (Best dept. Program / Sports awards.... Culinary Art)", category: "Awards", status: "pending", notes: "Presenters: Harikrishna, Amit, Bharath" },
+            { order: 21, time: "07:15 PM - 07:20 PM", title: "Recognition: Aim Higher Club / CIP / Blu star Idea", details: "Recognition: Aim Higher Club / CIP / Blu star Idea of the year", category: "Awards", status: "pending", notes: "Certificates ready on side tray" },
+            { order: 22, time: "07:25 PM - 07:30 PM", title: "Group Dance (Yati & Team)", details: "Group dance performance by Yati & Team", category: "Performance", status: "pending", notes: "Stage props check" },
+            { order: 23, time: "07:35 PM - 07:55 PM", title: "Brightest Blu star Executive & Star Department 2026", details: "Brightest Blu star Executive / Edisson Award / Transformed Dept / Star Department of the year 2026… By GM", category: "Awards", status: "pending", notes: "Grand Trophies on main table" },
+            { order: 24, time: "08:00 PM - 08:05 PM", title: "Vote of thanks", details: "GM / Owners / Infinity / Performers / Audience / Yathi / Sara & Sherif / Audience / Team members @work / HODs / Dinesh / Bharath / Sponsors / Mall of Mysore / Events team / Culinary team / Welcome Team", category: "Speech", status: "pending", notes: "Full list on podium" },
+            { order: 25, time: "08:10 PM - 08:20 PM", title: "Grand Finale Fashion Show (HOD)", details: "Grand Finale Fashion Runway Show by HODs", category: "Performance", status: "pending", notes: "Runway lighting track" },
+            { order: 26, time: "08:25 PM - 08:30 PM", title: "National Anthem", details: "National Anthem - All attendees stand", category: "Ceremony", status: "pending", notes: "National Anthem audio track cue" },
+            { order: 27, time: "08:30 PM - 09:30 PM", title: "Buffet opens & DJ Night", details: "Buffet opens……… (DANCE……DANCE … to the tunes of DJ)", category: "Social", status: "pending", notes: "Buffet line live & DJ track ON" }
+        ];
+
+        // App State
+        let scheduleItems = [];
+        let currentFilter = "all";
+        let searchQuery = "";
+        let soundEnabled = true;
+        let lastAlertId = null;
+        let audioCtx = null;
+        let pendingConfirmAction = null;
+        let db = null;
+
+        // Web Audio API Synthesized Chime ("Ding-Dong")
+        function playAlertChime() {
+            if (!soundEnabled) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+
+                // Tone 1 (High - E5 659Hz)
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(659.25, now);
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.35);
+
+                // Tone 2 (Lower - C5 523Hz)
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(523.25, now + 0.2);
+                gain2.gain.setValueAtTime(0.4, now + 0.2);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(now + 0.2);
+                osc2.stop(now + 0.7);
+            } catch (e) {
+                console.error("Audio synth error:", e);
+            }
+        }
+
+        // Initialize Firebase
+        function initFirebase() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.firestore();
+                setupRealtimeScheduleListener();
+                setupRealtimeAlertListener();
+            } catch (err) {
+                console.error("Firebase init error:", err);
+                updateSyncStatus(false, "Firebase Init Failed");
+            }
+        }
+
+        // Listen to Firestore Schedule Changes
+        function setupRealtimeScheduleListener() {
+            db.collection('annual_day_schedule').orderBy('order').onSnapshot(async (snapshot) => {
+                if (snapshot.empty) {
+                    updateSyncStatus(true, "Seeding Schedule...");
+                    await seedInitialSchedule();
+                    return;
+                }
+
+                const items = [];
+                snapshot.forEach(doc => {
+                    items.push({ docId: doc.id, ...doc.data() });
+                });
+
+                scheduleItems = items;
+                updateSyncStatus(true, "Connected to Firestore");
+                renderApp();
+            }, (error) => {
+                console.error("Firestore error:", error);
+                updateSyncStatus(false, "Offline / Rules Blocked");
+            });
+        }
+
+        // Listen to Firestore Backstage Real-time Alerts
+        function setupRealtimeAlertListener() {
+            db.collection('annual_day_alerts').doc('live_alert').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data && data.timestamp && (Date.now() - data.timestamp < 120000) && data.id !== lastAlertId) {
+                        lastAlertId = data.id;
+                        displayGlobalAlertBanner(data);
+                        playAlertChime();
+                    }
+                }
+            });
+        }
+
+        // Trigger Alert Across All Devices
+        async function triggerTeamAlert(title, time, details) {
+            if (!db) return;
+            const alertData = {
+                title: title,
+                time: time,
+                details: details || 'Performers & Presenters please prepare backstage.',
+                timestamp: Date.now(),
+                id: Math.random().toString(36).substring(2, 9)
+            };
+            try {
+                await db.collection('annual_day_alerts').doc('live_alert').set(alertData);
+                showToast(`Broadcasted team alert for "${title}"`, "success");
+            } catch (err) {
+                console.error("Alert trigger error:", err);
+                showToast("Alert trigger failed: " + err.message, "warning");
+            }
+        }
+
+        function displayGlobalAlertBanner(data) {
+            const banner = document.getElementById("global-alert-banner");
+            document.getElementById("alert-title-text").textContent = `GET READY: ${data.title}`;
+            document.getElementById("alert-msg-text").textContent = `${data.time} • ${data.details}`;
+            document.getElementById("alert-time-stamp").textContent = new Date(data.timestamp).toLocaleTimeString();
+            banner.classList.remove("hidden");
+        }
+
+        document.getElementById("btn-dismiss-alert").addEventListener("click", () => {
+            document.getElementById("global-alert-banner").classList.add("hidden");
+        });
+
+        // Auto-Seed 27 Items
+        async function seedInitialSchedule() {
+            const batch = db.batch();
+            const collectionRef = db.collection('annual_day_schedule');
+
+            INITIAL_SCHEDULE.forEach((item) => {
+                const docRef = collectionRef.doc(`item_${item.order}`);
+                batch.set(docRef, item);
+            });
+
+            try {
+                await batch.commit();
+                showToast("Seeded 27 schedule items to Firebase!", "success");
+            } catch (err) {
+                console.error("Seeding error:", err);
+            }
+        }
+
+        function updateSyncStatus(isLive, label) {
+            const badge = document.getElementById("sync-status-badge");
+            if (isLive) {
+                badge.className = "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                badge.innerHTML = `<i class="fa-solid fa-wifi mr-1.5 text-[10px] animate-pulse"></i> ${label}`;
+            } else {
+                badge.className = "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5 text-[10px]"></i> ${label}`;
+            }
+        }
+
+        // Live IST Clock
+        function updateLiveClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            document.getElementById("live-clock").textContent = timeStr;
+        }
+
+        // Toast Helper
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            
+            let bgClass = "bg-slate-900 text-slate-100 border-slate-700";
+            let icon = "fa-circle-info text-blue-400";
+            if (type === "success") { bgClass = "bg-emerald-950 text-emerald-100 border-emerald-700"; icon = "fa-circle-check text-emerald-400"; }
+            if (type === "warning") { bgClass = "bg-amber-950 text-amber-100 border-amber-700"; icon = "fa-triangle-exclamation text-amber-400"; }
+            
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold transition-all duration-300 transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove("translate-y-2", "opacity-0"), 10);
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "translate-y-2");
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Main Render Logic
+        function renderApp() {
+            const container = document.getElementById("schedule-container");
+            const emptyState = document.getElementById("empty-state");
+
+            // Counts
+            const total = scheduleItems.length;
+            const completed = scheduleItems.filter(i => i.status === 'completed').length;
+            const inProgress = scheduleItems.filter(i => i.status === 'in_progress').length;
+            const nextCount = scheduleItems.filter(i => i.status === 'next').length;
+            const pending = scheduleItems.filter(i => i.status === 'pending').length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById("count-total").textContent = total;
+            document.getElementById("count-completed").textContent = completed;
+            document.getElementById("count-live").textContent = inProgress;
+            document.getElementById("count-next").textContent = nextCount;
+            document.getElementById("count-pending").textContent = pending;
+            document.getElementById("progress-percent-badge").textContent = `${percent}% Completed`;
+            document.getElementById("progress-bar-fill").style.width = `${percent}%`;
+
+            // Tab badge numbers
+            document.getElementById("tab-count-all").textContent = total;
+            document.getElementById("tab-count-live").textContent = inProgress;
+            document.getElementById("tab-count-next").textContent = nextCount;
+            document.getElementById("tab-count-pending").textContent = pending;
+            document.getElementById("tab-count-completed").textContent = completed;
+
+            // Live & Up Next Banners
+            const liveItem = scheduleItems.find(i => i.status === 'in_progress');
+            let nextItem = scheduleItems.find(i => i.status === 'next');
+
+            // Fallback for next item if none marked 'next'
+            if (!nextItem && liveItem) {
+                const liveIdx = scheduleItems.findIndex(i => i.docId === liveItem.docId);
+                nextItem = scheduleItems.slice(liveIdx + 1).find(i => i.status !== 'completed');
+            } else if (!nextItem) {
+                nextItem = scheduleItems.find(i => i.status === 'pending');
+            }
+
+            // Render NOW LIVE CARD
+            if (liveItem) {
+                document.getElementById("live-title-display").textContent = liveItem.title;
+                document.getElementById("live-details-display").textContent = liveItem.details || "No details provided.";
+                document.getElementById("live-time-display").textContent = liveItem.time;
+                
+                const liveNotesBox = document.getElementById("live-notes-box");
+                if (liveItem.notes && liveItem.notes.trim()) {
+                    liveNotesBox.classList.remove("hidden");
+                    document.getElementById("live-notes-text").textContent = liveItem.notes;
+                } else {
+                    liveNotesBox.classList.add("hidden");
+                }
+
+                document.getElementById("btn-complete-live").onclick = () => setItemStatus(liveItem.docId, 'completed');
+                document.getElementById("btn-alert-from-live").onclick = () => triggerTeamAlert(liveItem.title, liveItem.time, liveItem.details);
+            } else {
+                document.getElementById("live-title-display").textContent = "No Live Segment Currently Active";
+                document.getElementById("live-details-display").textContent = "Promote 'Up Next' or click 'Live 🔴' on any item below.";
+                document.getElementById("live-time-display").textContent = "--:--";
+                document.getElementById("live-notes-box").classList.add("hidden");
+            }
+
+            // Render UP NEXT CARD
+            if (nextItem) {
+                document.getElementById("next-title-display").textContent = nextItem.title;
+                document.getElementById("next-details-display").textContent = nextItem.details || "No details provided.";
+                document.getElementById("next-time-display").textContent = nextItem.time;
+
+                const nextNotesBox = document.getElementById("next-notes-box");
+                if (nextItem.notes && nextItem.notes.trim()) {
+                    nextNotesBox.classList.remove("hidden");
+                    document.getElementById("next-notes-text").textContent = nextItem.notes;
+                } else {
+                    nextNotesBox.classList.add("hidden");
+                }
+
+                document.getElementById("btn-trigger-next-alert").onclick = () => triggerTeamAlert(nextItem.title, nextItem.time, nextItem.details);
+                document.getElementById("btn-promote-next-to-live").onclick = () => setItemStatus(nextItem.docId, 'in_progress');
+            } else {
+                document.getElementById("next-title-display").textContent = "No Segment On Deck";
+                document.getElementById("next-details-display").textContent = "All scheduled items are completed!";
+                document.getElementById("next-time-display").textContent = "--:--";
+                document.getElementById("next-notes-box").classList.add("hidden");
+            }
+
+            // Filtering & Search
+            const filtered = scheduleItems.filter(item => {
+                const matchesFilter = currentFilter === 'all' || item.status === currentFilter;
+                const matchesSearch = searchQuery === "" || 
+                    item.title.toLowerCase().includes(searchQuery) || 
+                    (item.details && item.details.toLowerCase().includes(searchQuery)) ||
+                    (item.notes && item.notes.toLowerCase().includes(searchQuery)) ||
+                    item.time.toLowerCase().includes(searchQuery);
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = "";
+                emptyState.classList.remove("hidden");
+                return;
+            } else {
+                emptyState.classList.add("hidden");
+            }
+
+            // Render Cards
+            container.innerHTML = filtered.map((item) => {
+                const isLive = item.status === 'in_progress';
+                const isNext = item.status === 'next';
+                const isDone = item.status === 'completed';
+
+                let borderClass = "border-slate-800/80 bg-slate-900/60 hover:border-slate-700";
+                let statusBadge = `<span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">Pending ⏳</span>`;
+
+                if (isLive) {
+                    borderClass = "border-rose-500/60 bg-gradient-to-r from-rose-950/20 via-slate-900 to-slate-900 shadow-xl shadow-rose-500/5";
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center gap-1.5 pulse-live-red"><span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span> LIVE NOW 🔴</span>`;
+                } else if (isNext) {
+                    borderClass = "border-amber-500/60 bg-gradient-to-r from-amber-950/20 via-slate-900 to-slate-900 shadow-xl shadow-amber-500/5";
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 pulse-next-amber"><i class="fa-solid fa-bell text-amber-400"></i> UP NEXT 🔔</span>`;
+                } else if (isDone) {
+                    borderClass = "border-emerald-900/40 bg-slate-950/40 opacity-75 hover:opacity-100";
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-check text-[10px] mr-1"></i> Completed ✅</span>`;
+                }
+
+                return `
+                <div class="rounded-2xl border ${borderClass} p-4 sm:p-5 transition-all duration-200">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        
+                        <!-- Details Column -->
+                        <div class="flex items-start space-x-3 flex-1 min-w-0">
+                            <div class="mt-0.5 text-slate-500 font-mono text-xs font-bold w-6 text-right select-none">
+                                ${item.order}.
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <span class="font-mono text-xs font-bold text-cyan-400 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">
+                                        <i class="fa-regular fa-clock mr-1 text-[10px]"></i>${item.time}
+                                    </span>
+                                    ${statusBadge}
+                                    <span class="text-[11px] font-medium text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">
+                                        ${item.category || 'General'}
+                                    </span>
+                                </div>
+
+                                <h3 class="text-base font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-100'} tracking-tight">
+                                    ${item.title}
+                                </h3>
+
+                                ${item.details ? `<p class="text-xs text-slate-300 mt-1 leading-relaxed">${item.details}</p>` : ''}
+
+                                ${item.notes ? `
+                                    <div class="mt-2 text-xs text-amber-300/90 bg-amber-950/30 border border-amber-900/30 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5">
+                                        <i class="fa-solid fa-clipboard-check text-amber-400 text-xs"></i>
+                                        <span>${item.notes}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- 4-Status Progression & Action Toolbar -->
+                        <div class="flex flex-wrap items-center justify-end gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800/60">
+                            
+                            <!-- Pending -->
+                            <button onclick="setItemStatus('${item.docId}', 'pending')" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${item.status === 'pending' ? 'bg-slate-700 text-white border border-slate-600' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'}" title="Set Pending">
+                                Pending
+                            </button>
+
+                            <!-- Up Next -->
+                            <button onclick="setItemStatus('${item.docId}', 'next')" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${item.status === 'next' ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'bg-slate-900 text-amber-400 hover:bg-amber-500/10 border border-slate-800'}" title="Mark Up Next">
+                                <i class="fa-solid fa-bell text-[10px] mr-1"></i> Up Next
+                            </button>
+
+                            <!-- Live -->
+                            <button onclick="setItemStatus('${item.docId}', 'in_progress')" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${item.status === 'in_progress' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'bg-slate-900 text-rose-400 hover:bg-rose-600/10 border border-slate-800'}" title="Make Live">
+                                <i class="fa-solid fa-play text-[10px] mr-1"></i> Live
+                            </button>
+
+                            <!-- Completed -->
+                            <button onclick="setItemStatus('${item.docId}', 'completed')" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${item.status === 'completed' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'bg-slate-900 text-emerald-400 hover:bg-emerald-600/10 border border-slate-800'}" title="Mark Complete">
+                                <i class="fa-solid fa-check text-[10px] mr-1"></i> Done
+                            </button>
+
+                            <div class="w-px h-5 bg-slate-800 mx-0.5"></div>
+
+                            <!-- Alert Team Button -->
+                            <button onclick="triggerTeamAlert('${item.title.replace(/'/g, "\\'")}', '${item.time}', '${(item.details || '').replace(/'/g, "\\'")}')" class="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition" title="Broadcast Alert to Backstage">
+                                <i class="fa-solid fa-bullhorn text-xs"></i>
+                            </button>
+
+                            <!-- Edit -->
+                            <button onclick="openEditItemModal('${item.docId}')" class="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition" title="Edit Segment">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+
+                            <!-- Delete -->
+                            <button onclick="deleteItem('${item.docId}')" class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition" title="Delete Segment">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join("");
+        }
+
+        // Set Item Status with Firestore Batch
+        async function setItemStatus(docId, newStatus) {
+            if (!db) return;
+            const batch = db.batch();
+            const collectionRef = db.collection('annual_day_schedule');
+
+            const targetItem = scheduleItems.find(i => i.docId === docId);
+
+            // Auto-complete previous live item if new item becomes live
+            if (newStatus === 'in_progress') {
+                scheduleItems.forEach(item => {
+                    if (item.status === 'in_progress' && item.docId !== docId) {
+                        batch.update(collectionRef.doc(item.docId), { status: 'completed' });
+                    }
+                });
+            }
+
+            // If item set to 'next', ensure no multiple 'next' conflicts
+            if (newStatus === 'next') {
+                scheduleItems.forEach(item => {
+                    if (item.status === 'next' && item.docId !== docId) {
+                        batch.update(collectionRef.doc(item.docId), { status: 'pending' });
+                    }
+                });
+            }
+
+            batch.update(collectionRef.doc(docId), { status: newStatus });
+
+            try {
+                await batch.commit();
+                showToast(`Updated status to ${newStatus.replace('_', ' ').toUpperCase()}`, "success");
+
+                // Auto alert team when marked "Up Next"
+                if (newStatus === 'next' && targetItem) {
+                    triggerTeamAlert(targetItem.title, targetItem.time, targetItem.details);
+                }
+            } catch (err) {
+                console.error("Status update error:", err);
+                showToast("Update failed: " + err.message, "warning");
+            }
+        }
+
+        // Shift Pending & Next Item Times
+        async function shiftPendingScheduleTimes(minutes) {
+            if (!db) return;
+
+            function parseAndShiftTimeStr(timeStr, minsToAdd) {
+                return timeStr.replace(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi, (match, h, m, p) => {
+                    let hour = parseInt(h, 10);
+                    let min = parseInt(m, 10);
+                    let period = p ? p.toUpperCase() : '';
+
+                    if (period === 'PM' && hour < 12) hour += 12;
+                    if (period === 'AM' && hour === 12) hour = 0;
+
+                    let totalMins = hour * 60 + min + minsToAdd;
+                    if (totalMins < 0) totalMins += 24 * 60;
+                    totalMins = totalMins % (24 * 60);
+
+                    let newHour = Math.floor(totalMins / 60);
+                    let newMin = totalMins % 60;
+                    let newPeriod = newHour >= 12 ? 'PM' : 'AM';
+
+                    let displayHour = newHour % 12;
+                    if (displayHour === 0) displayHour = 12;
+
+                    let minFormatted = newMin < 10 ? `0${newMin}` : `${newMin}`;
+                    let hourFormatted = displayHour < 10 ? `0${displayHour}` : `${displayHour}`;
+
+                    return `${hourFormatted}:${minFormatted} ${newPeriod}`;
+                });
+            }
+
+            const batch = db.batch();
+            const collectionRef = db.collection('annual_day_schedule');
+            let count = 0;
+
+            scheduleItems.forEach(item => {
+                if (item.status === 'pending' || item.status === 'next') {
+                    const newTime = parseAndShiftTimeStr(item.time, minutes);
+                    batch.update(collectionRef.doc(item.docId), { time: newTime });
+                    count++;
+                }
+            });
+
+            if (count === 0) {
+                showToast("No upcoming items to shift", "info");
+                return;
+            }
+
+            try {
+                await batch.commit();
+                showToast(`Shifted ${count} upcoming items by ${minutes > 0 ? '+' : ''}${minutes} mins`, "success");
+            } catch (err) {
+                console.error("Shift error:", err);
+                showToast("Shift failed: " + err.message, "warning");
+            }
+        }
+
+        document.getElementById("btn-shift-plus-5").addEventListener("click", () => shiftPendingScheduleTimes(5));
+        document.getElementById("btn-shift-plus-10").addEventListener("click", () => shiftPendingScheduleTimes(10));
+        document.getElementById("btn-shift-minus-5").addEventListener("click", () => shiftPendingScheduleTimes(-5));
+
+        // Add / Edit Modal Logic
+        window.openEditItemModal = function(docId) {
+            const item = scheduleItems.find(i => i.docId === docId);
+            if (!item) return;
+
+            document.getElementById("modal-item-title").innerHTML = `<i class="fa-solid fa-pen-to-square text-blue-400"></i> Edit Segment`;
+            document.getElementById("item-doc-id").value = item.docId;
+            document.getElementById("item-order").value = item.order;
+            document.getElementById("item-time").value = item.time;
+            document.getElementById("item-title-input").value = item.title;
+            document.getElementById("item-category").value = item.category || "General";
+            document.getElementById("item-status").value = item.status || "pending";
+            document.getElementById("item-details").value = item.details || "";
+            document.getElementById("item-notes").value = item.notes || "";
+
+            document.getElementById("modal-item").classList.remove("hidden");
+        };
+
+        document.getElementById("btn-add-item").addEventListener("click", () => {
+            const nextOrder = scheduleItems.length > 0 ? Math.max(...scheduleItems.map(i => i.order || 0)) + 1 : 1;
+            document.getElementById("modal-item-title").innerHTML = `<i class="fa-solid fa-plus text-blue-400"></i> Add New Segment`;
+            document.getElementById("item-doc-id").value = "";
+            document.getElementById("item-order").value = nextOrder;
+            document.getElementById("item-time").value = "";
+            document.getElementById("item-title-input").value = "";
+            document.getElementById("item-category").value = "General";
+            document.getElementById("item-status").value = "pending";
+            document.getElementById("item-details").value = "";
+            document.getElementById("item-notes").value = "";
+
+            document.getElementById("modal-item").classList.remove("hidden");
+        });
+
+        document.getElementById("btn-close-item-modal").addEventListener("click", () => document.getElementById("modal-item").classList.add("hidden"));
+        document.getElementById("btn-cancel-item").addEventListener("click", () => document.getElementById("modal-item").classList.add("hidden"));
+
+        document.getElementById("form-item").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const docId = document.getElementById("item-doc-id").value;
+            const order = parseInt(document.getElementById("item-order").value, 10) || (scheduleItems.length + 1);
+            const time = document.getElementById("item-time").value.trim();
+            const title = document.getElementById("item-title-input").value.trim();
+            const category = document.getElementById("item-category").value;
+            const status = document.getElementById("item-status").value;
+            const details = document.getElementById("item-details").value.trim();
+            const notes = document.getElementById("item-notes").value.trim();
+
+            const payload = { order, time, title, category, status, details, notes };
+
+            try {
+                if (docId) {
+                    await db.collection('annual_day_schedule').doc(docId).update(payload);
+                } else {
+                    await db.collection('annual_day_schedule').doc(`item_${order}`).set(payload);
+                }
+                document.getElementById("modal-item").classList.add("hidden");
+                showToast("Schedule segment saved to Firebase", "success");
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast("Save failed: " + err.message, "warning");
+            }
+        });
+
+        // Delete Item
+        window.deleteItem = function(docId) {
+            const item = scheduleItems.find(i => i.docId === docId);
+            if (!item) return;
+
+            openConfirmModal("Delete Segment?", `Are you sure you want to delete "${item.title}"?`, async () => {
+                try {
+                    await db.collection('annual_day_schedule').doc(docId).delete();
+                    showToast("Segment deleted from Firebase", "info");
+                } catch (err) {
+                    showToast("Delete failed: " + err.message, "warning");
+                }
+            });
+        };
+
+        // Confirmation Modal Logic
+        function openConfirmModal(title, msg, onConfirm) {
+            document.getElementById("confirm-modal-title").textContent = title;
+            document.getElementById("confirm-modal-msg").textContent = msg;
+            pendingConfirmAction = onConfirm;
+            document.getElementById("modal-confirm").classList.remove("hidden");
+        }
+
+        document.getElementById("btn-confirm-cancel").addEventListener("click", () => {
+            pendingConfirmAction = null;
+            document.getElementById("modal-confirm").classList.add("hidden");
+        });
+
+        document.getElementById("btn-confirm-proceed").addEventListener("click", () => {
+            if (pendingConfirmAction) pendingConfirmAction();
+            pendingConfirmAction = null;
+            document.getElementById("modal-confirm").classList.add("hidden");
+        });
+
+        // Reset Statuses Button
+        document.getElementById("btn-reset-statuses").addEventListener("click", () => {
+            openConfirmModal("Reset All Statuses?", "This will reset all 27 items back to Pending status.", async () => {
+                const batch = db.batch();
+                const collectionRef = db.collection('annual_day_schedule');
+                scheduleItems.forEach(item => {
+                    batch.update(collectionRef.doc(item.docId), { status: 'pending' });
+                });
+                try {
+                    await batch.commit();
+                    showToast("All items reset to Pending!", "success");
+                } catch (err) {
+                    showToast("Reset failed: " + err.message, "warning");
+                }
+            });
+        });
+
+        // Reseed Default Schedule
+        document.getElementById("btn-reseed-default").addEventListener("click", () => {
+            openConfirmModal("Restore Default Schedule?", "This will restore the original 27 schedule items in Firestore.", async () => {
+                try {
+                    const snapshot = await db.collection('annual_day_schedule').get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    
+                    INITIAL_SCHEDULE.forEach((item) => {
+                        const docRef = db.collection('annual_day_schedule').doc(`item_${item.order}`);
+                        batch.set(docRef, item);
+                    });
+
+                    await batch.commit();
+                    showToast("Restored original 27 schedule items!", "success");
+                } catch (err) {
+                    showToast("Restore failed: " + err.message, "warning");
+                }
+            });
+        });
+
+        // Sound Chime Toggle Button
+        document.getElementById("btn-toggle-sound").addEventListener("click", () => {
+            soundEnabled = !soundEnabled;
+            const soundIcon = document.getElementById("sound-icon");
+            const soundText = document.getElementById("sound-text");
+
+            if (soundEnabled) {
+                soundIcon.className = "fa-solid fa-volume-high text-cyan-400";
+                soundText.textContent = "Chime ON";
+                showToast("Audio alert chimes enabled", "info");
+                playAlertChime();
+            } else {
+                soundIcon.className = "fa-solid fa-volume-xmark text-slate-500";
+                soundText.textContent = "Chime OFF";
+                showToast("Audio alert chimes muted", "info");
+            }
+        });
+
+        // Filter Tabs Click Logic
+        document.querySelectorAll(".filter-tab").forEach(tab => {
+            tab.addEventListener("click", (e) => {
+                document.querySelectorAll(".filter-tab").forEach(t => {
+                    t.className = "filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition";
+                });
+                e.target.className = "filter-tab active px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition text-white bg-blue-600 shadow";
+                currentFilter = e.target.getAttribute("data-filter");
+                renderApp();
+            });
+        });
+
+        // Search Input
+        document.getElementById("search-input").addEventListener("input", (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            renderApp();
+        });
+
+        // Export JSON
+        document.getElementById("btn-export-show").addEventListener("click", () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scheduleItems, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `Annual_Day_2026_RunOfShow.json`);
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+            showToast("Exported Run of Show JSON", "success");
+        });
+
+        // App Initialization
+        window.onload = function() {
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
+```
+
